@@ -12,7 +12,7 @@ pub struct Config {
 
 impl Config {
     fn get_path() -> anyhow::Result<PathBuf> {
-        let project_dirs = ProjectDirs::from("com", "n0dwis", "cmux")
+        let project_dirs = ProjectDirs::from("com", "dmitryvakulenko", "cmux")
             .context("Failed to get project directories")?;
         let config_dir = project_dirs.config_dir();
         if !config_dir.exists() {
