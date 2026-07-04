@@ -1,11 +1,10 @@
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout};
-use ratatui::widgets::Block;
+use ratatui::style::{Color, Style};
+use ratatui::widgets::{Block, List, ListItem, ListState};
 use crate::model::Model;
 
-pub fn render(frame: &mut Frame, model: &Model) {
-    // let greeting = Paragraph::new("Hello World! (press 'q' to quit)");
-    // frame.render_widget(greeting, frame.area());
+pub fn render(frame: &mut Frame, model: &mut Model) {
     let layout = Layout::horizontal(vec![
         Constraint::Percentage(10),
         Constraint::Percentage(10),
@@ -13,8 +12,16 @@ pub fn render(frame: &mut Frame, model: &Model) {
     ])
     .split(frame.area());
 
-    let files = Block::bordered().title("Compose files");
-    frame.render_widget(files, layout[0]);
+    let projects_block = Block::bordered().title("Projects");
+    let mut projects = Vec::with_capacity(model.projects.len());
+    model.projects.iter().for_each(|p| {
+        projects.push(ListItem::new(p.name.as_str()));
+    });
+
+    let list = List::new(projects)
+        .block(projects_block)
+        .highlight_style(Style::new().bg(Color::Gray).fg(Color::Black));
+    frame.render_stateful_widget(list, layout[0], &mut model.selected_project);
 
     let containers = Block::bordered().title("Containers");
     frame.render_widget(containers, layout[1]);

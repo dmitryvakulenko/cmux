@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
 fn run(terminal: &mut DefaultTerminal) -> anyhow::Result<()> {
     let mut model = model::Model::new();
     loop {
-        terminal.draw(|frame| view::render(frame, &model))?;
+        terminal.draw(|frame| view::render(frame, &mut model))?;
         let msg = tea::handle_input(&model::Model::new())?;
         model.update(msg);
         if model.quit {
