@@ -12,6 +12,13 @@ pub enum Message {
     PrevProject,
     NextContainer,
     PrevContainer,
+    ShowAddProjectDialog,
+    HideAddProjectDialog,
+    RemoveProjectDialog,
+    Input(char),
+    Backspace,
+    Tab,
+    Submit,
     Quit,
 }
 
@@ -29,6 +36,18 @@ pub fn handle_input(m: &Model) -> anyhow::Result<Message> {
     }
 
     let key = q_pressed.unwrap().code;
+
+    if m.show_add_project_dialog {
+        return match key {
+            KeyCode::Esc => Ok(Message::HideAddProjectDialog),
+            KeyCode::Char(c) => Ok(Message::Input(c)),
+            KeyCode::Backspace => Ok(Message::Backspace),
+            KeyCode::Tab => Ok(Message::Tab),
+            KeyCode::Enter => Ok(Message::Submit),
+            _ => Ok(Message::None),
+        };
+    }
+
     match key {
         KeyCode::Char('q') => Ok(Message::Quit),
 
@@ -54,6 +73,29 @@ pub fn handle_input(m: &Model) -> anyhow::Result<Message> {
                 Ok(Message::None)
             }
         },
+
+        KeyCode::Char('a') => {
+            if m.active_view == 0 {
+                Ok(Message::ShowAddProjectDialog)
+            } else {
+                Ok(Message::None)
+            }
+        }
+        KeyCode::Char('d') => {
+            if m.active_view == 0 {
+                Ok(Message::RemoveProjectDialog)
+            } else {
+                Ok(Message::None)
+            }
+        }
+
+        KeyCode::Esc => {
+            if m.show_add_project_dialog {
+                Ok(Message::HideAddProjectDialog)
+            } else {
+                Ok(Message::None)
+            }
+        }
 
         _ => Ok(Message::None),
     }

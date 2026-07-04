@@ -1,7 +1,7 @@
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Color, Style};
-use ratatui::widgets::{Block, BorderType, List, ListItem};
+use ratatui::widgets::{Block, BorderType, List, ListItem, Clear, Paragraph};
 use crate::model::Model;
 
 pub fn render(frame: &mut Frame, model: &mut Model) {
@@ -28,11 +28,58 @@ pub fn render(frame: &mut Frame, model: &mut Model) {
 
     let containers_block = Block::bordered()
         .title("Containers")
-        .border_type(if model.active_view == 1 { BorderType::Double } else { BorderType::Plain });;
+        .border_type(if model.active_view == 1 { BorderType::Double } else { BorderType::Plain });
     frame.render_widget(containers_block, layout[1]);
 
     let terminal = Block::bordered()
         .title("Terminal")
         .border_type(if model.active_view == 2 { BorderType::Double } else { BorderType::Plain });
     frame.render_widget(terminal, layout[2]);
+
+    if model.show_add_project_dialog {
+        render_add_project_dialog(frame, model);
+    }
+}
+
+fn render_add_project_dialog(frame: &mut Frame, model: &mut Model) {
+    let area = frame.area();
+    let popup_area = Layout::vertical(vec![
+        Constraint::Length(10),
+    ])
+        .flex(ratatui::layout::Flex::Center)
+        .split(
+            Layout::horizontal(vec![Constraint::Length(60)])
+                .flex(ratatui::layout::Flex::Center)
+                .split(area)[0]
+        )[0];
+
+    frame.render_widget(Clear, popup_area);
+
+    let block = Block::bordered()
+        .title("Add Project")
+        .border_type(BorderType::Double);
+    frame.render_widget(block, popup_area);
+
+    let inner_layout = Layout::vertical(vec![
+        Constraint::Length(3),
+        Constraint::Length(3),
+        Constraint::Min(0),
+    ])
+        .margin(1)
+        .split(popup_area);
+
+    let name_block = Block::bordered()
+        .title("Project Name")
+        .border_style(if model.add_project_focus == 0 { Style::new().fg(Color::Yellow) } else { Style::new() });
+    let name_para = Paragraph::new(model.new_project_name.as_str()).block(name_block);
+    frame.render_widget(name_para, inner_layout[0]);
+
+    let path_block = Block::bordered()
+        .title("Docker-compose path")
+        .border_style(if model.add_project_focus == 1 { Style::new().fg(Color::Yellow) } else { Style::new() });
+    let path_para = Paragraph::new(model.new_project_path.as_str()).block(path_block);
+    frame.render_widget(path_para, inner_layout[1]);
+
+    let hint = Paragraph::new("Tab: Switch | Enter: Add | Esc: Cancel");
+    frame.render_widget(hint, inner_layout[2]);
 }
