@@ -1,13 +1,17 @@
+use std::collections::HashMap;
 use ratatui::widgets::ListState;
 use crate::tea::Message;
 
+#[derive(Debug, Default)]
 pub struct Model {
     pub projects: Vec<Project>,
     pub selected_project: ListState,
     pub active_view: i8,
+    pub need_save_config: bool,
     pub quit: bool
 }
 
+#[derive(Debug, Default)]
 pub struct Project {
     pub name: String,
     pub compose_path: String
@@ -15,15 +19,14 @@ pub struct Project {
 
 impl Model {
     pub fn new() -> Self {
-        Self {
-            projects: vec![
-                Project::new("project1".to_string(), "/path/to/project1".to_string()),
-                Project::new("project2".to_string(), "/path/to/project2".to_string()),
-            ],
-            selected_project: ListState::default().with_selected(Some(0)),
-            active_view: 0,
-            quit: false,
-        }
+        Self::default()
+    }
+
+    pub fn from_config(cfg: HashMap<String, String>) -> Self {
+        let mut res = Self::default();
+        res.projects = cfg.into_iter().map(|(name, path)| Project::new(name, path)).collect();
+
+        res
     }
 
     pub fn update(&mut self, msg: Message) {
