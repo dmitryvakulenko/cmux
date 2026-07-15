@@ -1,7 +1,7 @@
 use std::time::Duration;
-use ratatui::crossterm::event;
-use ratatui::crossterm::event::{Event, KeyCode};
 use anyhow::Context;
+use crossterm::event;
+use crossterm::event::KeyCode;
 use crate::model::Model;
 
 pub enum Message {
