@@ -1,5 +1,7 @@
+use std::io;
 use std::time::Duration;
 use anyhow::Context;
+use bollard::config::EventMessage;
 use crossterm::event;
 use crossterm::event::KeyCode;
 use crate::model::Model;
@@ -22,12 +24,8 @@ pub enum Message {
     Quit,
 }
 
-pub fn handle_input(m: &Model) -> anyhow::Result<Message> {
-    if !event::poll(Duration::from_millis(250)).context("event poll failed")? {
-        return Ok(Message::None);
-    }
-
-    let q_pressed = event::read()
+pub fn handle_input(m: &Model, evt: io::Result<crossterm::event::Event>) -> anyhow::Result<Message> {
+    let q_pressed = evt
         .context("event read failed")?
         .as_key_press_event();
 
@@ -99,4 +97,13 @@ pub fn handle_input(m: &Model) -> anyhow::Result<Message> {
 
         _ => Ok(Message::None),
     }
+}
+
+pub fn handle_docker_event(
+    m: &Model,
+    evt_result: Result<EventMessage, bollard::errors::Error>,
+) -> anyhow::Result<Message> {
+    let evt = evt_result.context("event read failed")?;
+
+    return Ok(Message::None);
 }
