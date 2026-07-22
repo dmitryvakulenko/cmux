@@ -16,7 +16,9 @@ pub enum Message {
     PrevContainer,
     ShowAddProjectDialog,
     HideAddProjectDialog,
-    RemoveProjectDialog,
+    RemoveProjectDialog(usize),
+    ConfirmRemoveProject,
+    CancelRemoveProject,
     Input(char),
     Backspace,
     Tab,
@@ -43,6 +45,21 @@ pub fn handle_input(
             KeyCode::Backspace => Ok(Message::Backspace),
             KeyCode::Tab => Ok(Message::Tab),
             KeyCode::Enter => Ok(Message::AddNewProject),
+            _ => Ok(Message::None),
+        };
+    }
+
+    if m.show_remove_project_dialog {
+        return match key {
+            KeyCode::Esc => Ok(Message::CancelRemoveProject),
+            KeyCode::Left | KeyCode::Right | KeyCode::Tab => Ok(Message::Tab),
+            KeyCode::Enter => {
+                if m.remove_project_button_focus == 0 {
+                    Ok(Message::ConfirmRemoveProject)
+                } else {
+                    Ok(Message::CancelRemoveProject)
+                }
+            }
             _ => Ok(Message::None),
         };
     }
@@ -80,13 +97,11 @@ pub fn handle_input(
                 Ok(Message::None)
             }
         }
-        KeyCode::Char('d') => {
-            if m.active_view == 0 {
-                Ok(Message::RemoveProjectDialog)
-            } else {
-                Ok(Message::None)
-            }
-        }
+        KeyCode::Char('d') if m.active_view == 0 => Ok(m
+            .selected_project
+            .selected()
+            .map(Message::RemoveProjectDialog)
+            .unwrap_or(Message::None)),
 
         KeyCode::Esc => {
             if m.show_add_project_dialog {

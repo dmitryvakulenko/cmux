@@ -12,7 +12,9 @@ pub struct Model<'a> {
     pub new_project_name: String,
     pub new_project_path: String,
     pub add_project_focus: usize,
-    pub hide_add_project_dialog: bool,
+    pub show_remove_project_dialog: bool,
+    pub remove_project_button_focus: usize,
+    pub project_to_remove: Option<usize>,
     pub quit: bool,
 }
 
@@ -27,7 +29,9 @@ impl<'a> Model<'a> {
             new_project_name: "".to_string(),
             new_project_path: "".to_string(),
             add_project_focus: 0,
-            hide_add_project_dialog: false,
+            show_remove_project_dialog: false,
+            remove_project_button_focus: 1,
+            project_to_remove: None,
             quit: false,
         };
 
@@ -86,7 +90,11 @@ impl<'a> Model<'a> {
                 }
             }
             Message::Tab => {
-                self.add_project_focus = (self.add_project_focus + 1) % 2;
+                if self.show_add_project_dialog {
+                    self.add_project_focus = (self.add_project_focus + 1) % 2;
+                } else if self.show_remove_project_dialog {
+                    self.remove_project_button_focus = (self.remove_project_button_focus + 1) % 2;
+                }
             }
             Message::AddNewProject => {
                 if !self.new_project_name.is_empty() && !self.new_project_path.is_empty() {
@@ -102,7 +110,35 @@ impl<'a> Model<'a> {
                     self.selected_project = self.selected_project.with_selected(Some(0));
                 }
             }
-            Message::RemoveProjectDialog => {}
+            Message::RemoveProjectDialog(idx) => {
+                self.show_remove_project_dialog = true;
+                self.project_to_remove = Some(idx);
+                self.remove_project_button_focus = 1;
+            }
+            Message::ConfirmRemoveProject => {
+                if let Some(idx) = self.project_to_remove {
+                    if idx < self.projects.len() {
+                        self.projects.remove(idx);
+                        self.need_save_config = true;
+                        if self.projects.is_empty() {
+                            self.selected_project.select(None);
+                        } else {
+                            let new_idx = if idx >= self.projects.len() {
+                                self.projects.len() - 1
+                            } else {
+                                idx
+                            };
+                            self.selected_project.select(Some(new_idx));
+                        }
+                    }
+                }
+                self.show_remove_project_dialog = false;
+                self.project_to_remove = None;
+            }
+            Message::CancelRemoveProject => {
+                self.show_remove_project_dialog = false;
+                self.project_to_remove = None;
+            }
         }
     }
 }
