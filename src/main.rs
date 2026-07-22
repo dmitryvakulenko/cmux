@@ -6,7 +6,6 @@ use bollard::query_parameters::EventsOptionsBuilder;
 use crossterm::event::EventStream;
 use ratatui::DefaultTerminal;
 use futures::{Stream, StreamExt, stream_select};
-use log::{debug, error, info};
 
 pub mod config;
 pub mod model;
@@ -34,8 +33,8 @@ async fn run(mut terminal: DefaultTerminal) -> anyhow::Result<()> {
 
     let docker = Docker::connect_with_local_defaults()?;
     let filters = HashMap::from([
-        ("type".to_string(), vec!["container".to_string()]),
-        ("event".to_string(), vec!["start".to_string(), "stop".to_string()]),
+        ("type", vec!["container"]),
+        ("event", vec!["start", "stop"]),
     ]);
     let evts_params = EventsOptionsBuilder::new()
         .filters(&filters)
