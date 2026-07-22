@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use ratatui::widgets::ListState;
+use crate::config::Project;
 use crate::tea::Message;
 
-#[derive(Debug, Default)]
-pub struct Model {
-    pub projects: Vec<Project>,
+#[derive(Debug)]
+pub struct Model<'a> {
+    pub projects: &'a mut Vec<Project>,
     pub selected_project: ListState,
     pub active_view: i8,
     pub need_save_config: bool,
@@ -16,22 +16,20 @@ pub struct Model {
     pub quit: bool
 }
 
-#[derive(Debug, Default)]
-pub struct Project {
-    pub name: String,
-    pub compose_path: String
-}
-
-impl Model {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn from_config(cfg: HashMap<String, String>) -> Self {
-        let mut res = Self::default();
-        res.projects = cfg.into_iter().map(|(name, path)| Project::new(name, path)).collect();
-
-        res
+impl<'a> Model<'a> {
+    pub fn from_config(projects: &'a mut Vec<Project>) -> Self {
+        Self{
+            projects,
+            selected_project: ListState::default(),
+            active_view: 0,
+            need_save_config: false,
+            show_add_project_dialog: false,
+            new_project_name: "".to_string(),
+            new_project_path: "".to_string(),
+            add_project_focus: 0,
+            hide_add_project_dialog: false,
+            quit: false,
+        }
     }
 
     pub fn update(&mut self, msg: Message) {
@@ -86,7 +84,7 @@ impl Model {
             }
             Message::Submit => {
                 if !self.new_project_name.is_empty() && !self.new_project_path.is_empty() {
-                    self.projects.push(Project::new(self.new_project_name.clone(), self.new_project_path.clone()));
+                    self.projects.push(Project::new(self.new_project_name.clone(), self.new_project_path.clone(), None));
                     self.show_add_project_dialog = false;
                     self.need_save_config = true;
                 }
@@ -94,15 +92,6 @@ impl Model {
             Message::RemoveProjectDialog => {
 
             }
-        }
-    }
-}
-
-impl Project {
-    pub fn new(name: String, compose_path: String) -> Self {
-        Self {
-            name,
-            compose_path
         }
     }
 }

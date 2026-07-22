@@ -6,8 +6,25 @@ use directories::ProjectDirs;
 use anyhow::Context;
 
 #[derive(Serialize, Deserialize, Default, Debug)]
+pub struct Project {
+    pub name: String,
+    pub compose_path: String,
+    pub shell_cmd: Option<String>,
+}
+
+impl Project {
+    pub fn new(name: String, compose_path: String, shell_cmd: Option<String>) -> Self {
+        Self {
+            name,
+            compose_path,
+            shell_cmd,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct Config {
-    pub projects: HashMap<String, String>
+    pub projects: Vec<Project>
 }
 
 impl Config {
@@ -46,7 +63,11 @@ mod tests {
     #[test]
     fn test_config_load_save() {
         let mut config = Config::default();
-        config.projects.insert("test_project".to_string(), "/tmp/test".to_string());
+        config.projects.push(Project{
+            name: "test_project".to_string(),
+            compose_path: "/tmp/test".to_string(),
+            shell_cmd: None,
+        });
         
         let path = Config::get_path().expect("Should get config path");
         
@@ -59,8 +80,10 @@ mod tests {
         assert!(path.exists());
         
         let loaded = Config::load().expect("Should load config");
-        assert_eq!(loaded.projects.get("test_project").unwrap(), "/tmp/test");
-        
+        assert_eq!(loaded.projects[0].name, "test_project");
+        assert_eq!(loaded.projects[0].compose_path, "/tmp/test");
+        assert_eq!(loaded.projects[0].shell_cmd, None);
+
         fs::remove_file(path).expect("Should cleanup test config file");
     }
 }

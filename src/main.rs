@@ -28,8 +28,8 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run(mut terminal: DefaultTerminal) -> anyhow::Result<()> {
-    let cfg = config::Config::load()?;
-    let mut model = model::Model::from_config(cfg.projects);
+    let mut cfg = config::Config::load()?;
+    let mut model = model::Model::from_config(&mut cfg.projects);
 
     let docker = Docker::connect_with_local_defaults()?;
     let filters = HashMap::from([
@@ -63,13 +63,6 @@ async fn run(mut terminal: DefaultTerminal) -> anyhow::Result<()> {
     }
 
     if model.need_save_config {
-        let cfg = config::Config {
-            projects: model
-                .projects
-                .iter()
-                .map(|p| (p.name.clone(), p.compose_path.clone()))
-                .collect(),
-        };
         cfg.save()?;
     }
 
