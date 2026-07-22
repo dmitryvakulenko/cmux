@@ -1,10 +1,17 @@
-use crate::config::Project;
+use crate::config;
 use crate::tea::Message;
 use ratatui::widgets::ListState;
 
 #[derive(Debug)]
-pub struct Model<'a> {
-    pub projects: &'a mut Vec<Project>,
+pub struct Project {
+    pub name: String,
+    pub compose_path: String,
+    pub shell_cmd: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct Model {
+    pub projects: Vec<Project>,
     pub selected_project: ListState,
     pub active_view: i8,
     pub need_save_config: bool,
@@ -18,10 +25,17 @@ pub struct Model<'a> {
     pub quit: bool,
 }
 
-impl<'a> Model<'a> {
-    pub fn from_config(projects: &'a mut Vec<Project>) -> Self {
+impl Model {
+    pub fn from_config(projects: &Vec<config::Project>) -> Self {
         let mut res = Self {
-            projects,
+            projects: projects
+                .iter()
+                .map(|p| Project {
+                    name: p.name.clone(),
+                    compose_path: p.compose_path.clone(),
+                    shell_cmd: p.shell_cmd.clone(),
+                })
+                .collect(),
             selected_project: ListState::default(),
             active_view: 0,
             need_save_config: false,
@@ -98,11 +112,11 @@ impl<'a> Model<'a> {
             }
             Message::AddNewProject => {
                 if !self.new_project_name.is_empty() && !self.new_project_path.is_empty() {
-                    self.projects.push(Project::new(
-                        self.new_project_name.clone(),
-                        self.new_project_path.clone(),
-                        None,
-                    ));
+                    self.projects.push(Project {
+                        name: self.new_project_name.clone(),
+                        compose_path: self.new_project_path.clone(),
+                        shell_cmd: None,
+                    });
                     self.show_add_project_dialog = false;
                     self.need_save_config = true;
                 }
