@@ -1,10 +1,10 @@
-use std::io;
-use std::time::Duration;
+use crate::model::Model;
 use anyhow::Context;
 use bollard::config::EventMessage;
 use crossterm::event;
 use crossterm::event::KeyCode;
-use crate::model::Model;
+use std::io;
+use std::time::Duration;
 
 pub enum Message {
     None,
@@ -20,14 +20,15 @@ pub enum Message {
     Input(char),
     Backspace,
     Tab,
-    Submit,
+    AddNewProject,
     Quit,
 }
 
-pub fn handle_input(m: &Model, evt: io::Result<crossterm::event::Event>) -> anyhow::Result<Message> {
-    let q_pressed = evt
-        .context("event read failed")?
-        .as_key_press_event();
+pub fn handle_input(
+    m: &Model,
+    evt: io::Result<crossterm::event::Event>,
+) -> anyhow::Result<Message> {
+    let q_pressed = evt.context("event read failed")?.as_key_press_event();
 
     if q_pressed.is_none() {
         return Ok(Message::None);
@@ -41,7 +42,7 @@ pub fn handle_input(m: &Model, evt: io::Result<crossterm::event::Event>) -> anyh
             KeyCode::Char(c) => Ok(Message::Input(c)),
             KeyCode::Backspace => Ok(Message::Backspace),
             KeyCode::Tab => Ok(Message::Tab),
-            KeyCode::Enter => Ok(Message::Submit),
+            KeyCode::Enter => Ok(Message::AddNewProject),
             _ => Ok(Message::None),
         };
     }
@@ -60,8 +61,8 @@ pub fn handle_input(m: &Model, evt: io::Result<crossterm::event::Event>) -> anyh
             } else {
                 Ok(Message::None)
             }
-        },
-        
+        }
+
         KeyCode::Down => {
             if m.active_view == 0 {
                 Ok(Message::NextProject)
@@ -70,7 +71,7 @@ pub fn handle_input(m: &Model, evt: io::Result<crossterm::event::Event>) -> anyh
             } else {
                 Ok(Message::None)
             }
-        },
+        }
 
         KeyCode::Char('a') => {
             if m.active_view == 0 {

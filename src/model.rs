@@ -1,6 +1,6 @@
-use ratatui::widgets::ListState;
 use crate::config::Project;
 use crate::tea::Message;
+use ratatui::widgets::ListState;
 
 #[derive(Debug)]
 pub struct Model<'a> {
@@ -13,12 +13,12 @@ pub struct Model<'a> {
     pub new_project_path: String,
     pub add_project_focus: usize,
     pub hide_add_project_dialog: bool,
-    pub quit: bool
+    pub quit: bool,
 }
 
 impl<'a> Model<'a> {
     pub fn from_config(projects: &'a mut Vec<Project>) -> Self {
-        Self{
+        let mut res = Self {
             projects,
             selected_project: ListState::default(),
             active_view: 0,
@@ -29,7 +29,13 @@ impl<'a> Model<'a> {
             add_project_focus: 0,
             hide_add_project_dialog: false,
             quit: false,
+        };
+
+        if res.projects.len() == 1 {
+            res.selected_project = res.selected_project.with_selected(Some(0));
         }
+
+        res
     }
 
     pub fn update(&mut self, msg: Message) {
@@ -46,7 +52,7 @@ impl<'a> Model<'a> {
                 if self.active_view < 0 {
                     self.active_view = 0;
                 }
-            },
+            }
             Message::NextProject => {
                 self.selected_project.select_next();
             }
@@ -64,7 +70,7 @@ impl<'a> Model<'a> {
             }
             Message::HideAddProjectDialog => {
                 self.show_add_project_dialog = false;
-            },
+            }
             Message::Input(c) => {
                 if self.add_project_focus == 0 {
                     self.new_project_name.push(c);
@@ -82,16 +88,21 @@ impl<'a> Model<'a> {
             Message::Tab => {
                 self.add_project_focus = (self.add_project_focus + 1) % 2;
             }
-            Message::Submit => {
+            Message::AddNewProject => {
                 if !self.new_project_name.is_empty() && !self.new_project_path.is_empty() {
-                    self.projects.push(Project::new(self.new_project_name.clone(), self.new_project_path.clone(), None));
+                    self.projects.push(Project::new(
+                        self.new_project_name.clone(),
+                        self.new_project_path.clone(),
+                        None,
+                    ));
                     self.show_add_project_dialog = false;
                     self.need_save_config = true;
                 }
+                if self.projects.len() == 1 {
+                    self.selected_project = self.selected_project.with_selected(Some(0));
+                }
             }
-            Message::RemoveProjectDialog => {
-
-            }
+            Message::RemoveProjectDialog => {}
         }
     }
 }
